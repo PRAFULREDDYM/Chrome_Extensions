@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 380px;
+      height: 600px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: rgba(20, 20, 25, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: rgba(255, 255, 255, 0.95);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* Scrollable container */
+    .scroll-container {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+    
+    .scroll-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .scroll-container::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 3px;
+    }
+    
+    .scroll-container::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 3px;
+    }
+    
+    /* Glass card base */
+    .glass {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    
+    .brand-text h1 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      color: rgba(255,255,255,0.95);
+    }
+    
+    .brand-text p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+    }
+    
+    .status-active .status-dot {
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 0 8px rgba(255,255,255,0.5);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .btn {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      color: rgba(255,255,255,0.9);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .btn:hover:not(:disabled) {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.25);
+      transform: translateY(-1px);
+    }
+    
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    
+    .btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    
+    .btn-active {
+      background: rgba(255,255,255,0.2);
+      border-color: rgba(255,255,255,0.3);
+    }
+    
+    /* Session info */
+    .info-card {
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    
+    .info-label {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+    }
+    
+    .info-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.95);
+    }
+    
+    /* Section header */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+    
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .section-count {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+    }
+    
+    /* Pages list */
+    .pages-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 80px; /* Space for bottom buttons */
+    }
+    
+    .page-item {
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .page-item:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateX(2px);
+    }
+    
+    .page-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: rgba(255,255,255,0.3);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .page-item:hover::before {
+      opacity: 1;
+    }
+    
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    
+    .page-icon {
+      width: 16px;
+      height: 16px;
+      opacity: 0.6;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .page-domain {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      text-transform: lowercase;
+    }
+    
+    .page-title {
+      font-size: 13px;
+      color: rgba(255,255,255,0.95);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    
+    .page-footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .progress-bg {
+      flex: 1;
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: rgba(255,255,255,0.6);
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+    
+    .progress-text {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      min-width: 32px;
+      text-align: right;
+    }
+    
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: rgba(255,255,255,0.4);
+    }
+    
+    .empty-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+    
+    .empty-text {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    
+    .empty-sub {
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
+    }
+    
+    /* Bottom actions */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 20px 20px;
+      background: linear-gradient(to top, rgba(20,20,25,0.95) 60%, transparent);
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+    }
+    
+    .btn-footer {
+      flex: 1;
+      padding: 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      color: rgba(255,255,255,0.7);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-footer:hover {
+      background: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.95);
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="scroll-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand">
+        <div class="brand-icon">◉</div>
+        <div class="brand-text">
+          <h1>Context</h1>
+          <p>Research Trail</p>
+        </div>
+      </div>
+      <div class="status-indicator" id="statusBadge">
+        <span class="status-dot"></span>
+        <span id="statusText">Stopped</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn" id="btnStart">Start</button>
+      <button class="btn" id="btnPause" disabled>Pause</button>
+      <button class="btn" id="btnStop" disabled>Stop</button>
+    </div>
+
+    <!-- Session Info -->
+    <div id="sessionInfo"></div>
+
+    <!-- Pages Section -->
+    <div id="pagesSection"></div>
+  </div>
+
+  <!-- Bottom Actions -->
+  <div class="bottom-bar">
+    <button class="btn-footer" id="btnHistory">View History</button>
+    <button class="btn-footer" id="btnClear">Clear All</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
