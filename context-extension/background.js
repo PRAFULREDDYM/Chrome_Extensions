@@ -1,6 +1,7 @@
-// State management
+// State
 let appState = 'stopped';
 let currentSession = null;
+let activeTabId = null;
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({
@@ -26,6 +27,11 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
         };
         await saveState();
         updateBadge();
+        
+        // Inject into current active tab immediately
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tab) await injectAndTrack(tab);
+        
         sendResponse({ success: true, session: currentSession });
         break;
         
@@ -45,6 +51,7 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
           await chrome.storage.local.set({ sessions });
         }
         currentSession = null;
+        activeTabId = null;
         await saveState();
         updateBadge();
         sendResponse({ success: true });
@@ -80,32 +87,35 @@ chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
         updateBadge();
         sendResponse({ success: true });
         break;
-        
-      case 'getPageScroll':
-        const { scrollMemory = {} } = await chrome.storage.local.get('scrollMemory');
-        sendResponse({ position: scrollMemory[req.url] || null });
-        break;
     }
   })();
   return true;
 });
 
-// Tab tracking
+// Track tab switches using tabs permission (no host permission needed)
 chrome.tabs.onActivated.addListener(async (info) => {
   if (appState !== 'active') return;
+  
+  activeTabId = info.tabId;
   const tab = await chrome.tabs.get(info.tabId);
-  trackTab(tab);
+  
+  // Only track if it's a regular webpage
+  if (tab.url && tab.url.startsWith('http')) {
+    // Use executeScript with activeTab permission (granted via user gesture when clicking Start)
+    await injectAndTrack(tab);
+  }
 });
 
 chrome.tabs.onUpdated.addListener((id, change, tab) => {
   if (appState !== 'active') return;
-  if (change.status === 'complete' && tab.active) trackTab(tab);
+  if (change.status === 'complete' && tab.active && tab.url && tab.url.startsWith('http')) {
+    injectAndTrack(tab);
+  }
 });
 
-async function trackTab(tab) {
-  if (!tab?.url?.startsWith('http')) return;
-  
+async function injectAndTrack(tab) {
   try {
+    // activeTab permission allows this without host permissions
     const [{ result }] = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: () => ({
@@ -126,7 +136,8 @@ async function trackTab(tab) {
       timestamp: Date.now()
     });
   } catch(e) {
-    console.error('Track error:', e);
+    // Silent fail - activeTab might not be granted for this tab yet
+    console.log('Cannot track tab yet:', e.message);
   }
 }
 
@@ -164,7 +175,6 @@ async function updateScroll(url, position) {
     await saveState();
   }
   
-  // Also save to scrollMemory for resume
   const { scrollMemory = {} } = await chrome.storage.local.get('scrollMemory');
   scrollMemory[url] = position;
   await chrome.storage.local.set({ scrollMemory });
